@@ -1,5 +1,6 @@
-from fastapi import HTTPException, status
 from enum import Enum
+
+from fastapi import HTTPException, status
 
 
 class MensagemErro(str, Enum):

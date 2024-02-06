@@ -1,9 +1,11 @@
-from sqlmodel import Column, DateTime, SQLModel, Field, Relationship
 from datetime import datetime
 from enum import Enum
-from typing import Optional, List
-from .utils import utcnow
+from typing import List, Optional
+
 from pydantic import PositiveInt
+from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
+
+from .utils import utcnow
 
 
 class TipoTransacao(str, Enum):

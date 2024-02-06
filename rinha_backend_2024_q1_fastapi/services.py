@@ -1,14 +1,15 @@
+from pydantic.types import PositiveInt
+from sqlalchemy.orm import joinedload
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from .exceptions import ClienteNaoEncontradoException, SaldoInsuficienteException
 from .models import (
     Cliente,
-    Transacao,
-    TipoTransacao,
     RespostaExtrato,
+    TipoTransacao,
+    Transacao,
 )
-from .exceptions import SaldoInsuficienteException, ClienteNaoEncontradoException
-from sqlmodel import select
-from sqlalchemy.orm import joinedload
-from sqlmodel.ext.asyncio.session import AsyncSession
-from pydantic.types import PositiveInt
 
 
 async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:

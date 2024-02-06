@@ -1,9 +1,10 @@
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncEngine
+
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .config import settings
 
+from .config import settings
 from .models import Cliente
 
 engine: AsyncEngine = create_async_engine(settings.DB_URL)
@@ -33,7 +34,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         try:
             yield session
-        except:
+        except:  # noqa
             await session.rollback()
         finally:
             await session.close()
