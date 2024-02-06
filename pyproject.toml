@@ -16,6 +16,15 @@ pydantic-settings = "^2.1.0"
 asyncpg = "^0.29.0"
 
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.8.0"
+ruff = "^0.2.1"
+taskipy = "^1.12.2"
+
+[tool.taskipy.tasks]
+lint = "ruff . && ruff check --select I . && ruff format . --check && mypy ."
+format = "ruff . --fix && ruff format . && ruff check --select I . --fix"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
