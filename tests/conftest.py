@@ -3,8 +3,9 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from rinha_backend_2024_q1_fastapi.database import dados_simulacao, get_session
 from rinha_backend_2024_q1_fastapi.main import app
@@ -28,13 +29,11 @@ async def session() -> AsyncGenerator[AsyncSession, None]:
         engine, expire_on_commit=False, class_=AsyncSession
     )
     async with async_session() as session:
-        async with engine.begin() as conn:
-            await conn.run_sync(SQLModel.metadata.create_all)
+        await create_tabelas()
 
         yield session
 
-        async with engine.begin() as conn:
-            await conn.run_sync(SQLModel.metadata.drop_all)
+        await drop_tabelas()
         await engine.dispose()
 
 
@@ -53,9 +52,12 @@ async def client(test_session) -> AsyncGenerator[AsyncClient, None]:
         app.dependency_overrides[get_session] = test_session
         yield client
 
+    app.dependency_overrides.clear()
+
 
 @pytest.fixture(scope="function", autouse=True)
-async def criar_dados_para_testes(session: AsyncSession) -> None:
+async def dados_clientes(session: AsyncSession) -> AsyncGenerator[list, None]:
     clientes = dados_simulacao()
     session.add_all(clientes)
     await session.commit()
+    yield clientes
