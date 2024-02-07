@@ -13,14 +13,10 @@ from rinha_backend_2024_q1_fastapi.main import app
 engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
 
-async def create_tabelas():
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-
-
-async def drop_tabelas():
+async def criar_tabelas():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
+        await conn.run_sync(SQLModel.metadata.create_all)
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -29,12 +25,11 @@ async def session() -> AsyncGenerator[AsyncSession, None]:
         engine, expire_on_commit=False, class_=AsyncSession
     )
     async with async_session() as session:
-        await create_tabelas()
+        await criar_tabelas()
 
         yield session
 
-        await drop_tabelas()
-        await engine.dispose()
+    await engine.dispose()
 
 
 @pytest.fixture(scope="function")
