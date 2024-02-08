@@ -46,14 +46,25 @@ async def test_extrato_inexistente(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_transacao(client: AsyncClient) -> None:
-    """Testa se a rota de transação está funcionando corretamente."""
+async def test_transacao_credito(client: AsyncClient) -> None:
+    """Testa se a rota de transação de crédito está funcionando corretamente."""
     payload = {"valor": 1000, "tipo": "c", "descricao": "descricao"}
     response = await client.post("/clientes/1/transacoes", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert "limite" in data
     assert data["saldo"] == payload["valor"]
+
+
+@pytest.mark.asyncio
+async def test_transacao_debito(client: AsyncClient) -> None:
+    """Testa se a rota de transação de débito está funcionando corretamente."""
+    payload = {"valor": 1000, "tipo": "d", "descricao": "descricao"}
+    response = await client.post("/clientes/1/transacoes", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "limite" in data
+    assert data["saldo"] == -1000
 
 
 @pytest.mark.asyncio
