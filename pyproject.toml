@@ -39,6 +39,9 @@ concurrency = ["greenlet", "thread"]
 [tool.taskipy.tasks]
 lint = "ruff . && ruff check --select I . && ruff format . --check && mypy ."
 format = "ruff . --fix && ruff format . && ruff check --select I . --fix"
+pre_test = "task lint"
+test = "pytest"
+post_test = "coverage html"
 
 
 [build-system]
