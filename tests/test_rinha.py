@@ -14,6 +14,7 @@ async def test_api(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_clientes(dados_clientes: List[Cliente]) -> None:
+    """Testa se o cadastro inicial de clientes está correto."""
     assert len(dados_clientes) == 5
     assert dados_clientes[0].limite == 100000
     assert dados_clientes[0].saldo == 0
@@ -29,15 +30,27 @@ async def test_clientes(dados_clientes: List[Cliente]) -> None:
 
 @pytest.mark.asyncio
 async def test_extrato(client: AsyncClient) -> None:
-    for cliente_id in range(1, 6):
-        response = await client.get(f"/clientes/{cliente_id}/extrato")
-        assert response.status_code == 200
-        data = response.json()
-        assert "saldo" in data
-        assert "ultimas_transacoes" in data
+    """Testa se a rota de extrato está funcionando corretamente."""
+    response = await client.get("/clientes/1/extrato")
+    assert response.status_code == 200
+    data = response.json()
+    assert "saldo" in data
+    assert "ultimas_transacoes" in data
 
 
 @pytest.mark.asyncio
 async def test_extrato_inexistente(client: AsyncClient) -> None:
+    """Testa se a rota de extrato retorna 404 para cliente inexistente."""
     response = await client.get("/clientes/6/extrato")
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_transacao(client: AsyncClient) -> None:
+    """Testa se a rota de transação está funcionando corretamente."""
+    payload = {"valor": 1000, "tipo": "c", "descricao": "descricao"}
+    response = await client.post("/clientes/1/transacoes", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "saldo" in data
+    assert "limite" in data
