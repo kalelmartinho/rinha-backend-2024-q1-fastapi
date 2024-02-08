@@ -2,7 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import PositiveInt
+from pydantic import ConfigDict, PositiveInt
+from pydantic import Field as PydanticField
 from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
 
 from .utils import utcnow
@@ -30,6 +31,8 @@ class SaldoBase(SQLModel):
 
 
 class SaldoExtrato(SaldoBase):
+    model_config = ConfigDict(populate_by_name=True)
+    saldo: int = PydanticField(..., alias="total")
     data_extrato: datetime = utcnow()
 
 
