@@ -1,7 +1,6 @@
 from typing import AsyncGenerator, List
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..models import Cliente
@@ -18,17 +17,6 @@ def dados_simulacao() -> List[Cliente]:
         Cliente(id=4, limite=10000000, saldo=0),
         Cliente(id=5, limite=500000, saldo=0),
     ]
-
-
-async def iniciar_db() -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-        await conn.run_sync(SQLModel.metadata.create_all)
-
-    async with AsyncSession(engine) as session:
-        async with session.begin():
-            clientes: List[Cliente] = dados_simulacao()
-            session.add_all(clientes)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
