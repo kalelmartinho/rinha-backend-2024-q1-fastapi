@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from .database import get_session
+from .core.database import get_session
 from .models import RequisicaoTransacao, RespostaExtrato, RespostaTransacao
 from .services import gerar_extrato, transacionar
 

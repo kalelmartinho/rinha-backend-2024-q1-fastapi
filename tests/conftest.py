@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from rinha_backend_2024_q1_fastapi.database import dados_simulacao, get_session
+from rinha_backend_2024_q1_fastapi.core.database import dados_simulacao, get_session
 from rinha_backend_2024_q1_fastapi.main import app
 
 engine = create_async_engine("sqlite+aiosqlite:///:memory:")

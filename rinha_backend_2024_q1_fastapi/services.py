@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from .exceptions import ClienteNaoEncontradoException, SaldoInsuficienteException
+from .core.exceptions import ClienteNaoEncontradoException, SaldoInsuficienteException
 from .models import (
     Cliente,
     RespostaExtrato,

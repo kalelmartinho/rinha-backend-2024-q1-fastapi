@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from ..models import Cliente
 from .config import settings
-from .models import Cliente
 
 engine: AsyncEngine = create_async_engine(settings.DB_URL)
 

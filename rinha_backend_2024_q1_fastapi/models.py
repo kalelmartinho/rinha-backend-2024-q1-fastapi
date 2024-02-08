@@ -6,7 +6,7 @@ from pydantic import ConfigDict, PositiveInt
 from pydantic import Field as PydanticField
 from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
 
-from .utils import utcnow
+from .core.utils import utcnow
 
 
 class TipoTransacao(str, Enum):
