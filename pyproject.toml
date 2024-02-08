@@ -35,6 +35,7 @@ addopts = "-s -x --cov=rinha_backend_2024_q1_fastapi -vv"
 [tool.coverage.run]
 branch = true
 concurrency = ["greenlet", "thread"]
+omit = ["*/main.py", "*/database.py"]
 
 [tool.taskipy.tasks]
 lint = "ruff . && ruff check --select I . && ruff format . --check && mypy ."
