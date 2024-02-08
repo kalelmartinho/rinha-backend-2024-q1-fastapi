@@ -44,6 +44,6 @@ jobs:
 
     - name: Lint and Test
       run: |
-        poetry run test --cov-report=xml
+        poetry run task test --cov-report=xml
       
       
