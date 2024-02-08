@@ -105,5 +105,3 @@ async def test_transacao_valor_negativo(client: AsyncClient) -> None:
     payload = {"valor": -1000, "tipo": "c", "descricao": "descricao"}
     response = await client.post("/clientes/1/transacoes", json=payload)
     assert response.status_code == 422
-
-    assert response.status_code == 422
