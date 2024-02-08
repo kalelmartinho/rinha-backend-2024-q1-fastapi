@@ -31,7 +31,7 @@ class SaldoBase(SQLModel):
 
 
 class SaldoExtrato(SaldoBase):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)  # type: ignore
     saldo: int = PydanticField(..., alias="total")
     data_extrato: datetime = utcnow()
 
