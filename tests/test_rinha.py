@@ -52,5 +52,13 @@ async def test_transacao(client: AsyncClient) -> None:
     response = await client.post("/clientes/1/transacoes", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert "saldo" in data
     assert "limite" in data
+    assert data["saldo"] == payload["valor"]
+
+
+@pytest.mark.asyncio
+async def test_transacao_descricao_longa(client: AsyncClient) -> None:
+    """Testa se a rota de transação retorna 422 para descrição maior que 10 caracteres."""
+    payload = {"valor": 1000, "tipo": "c", "descricao": "a" * 11}
+    response = await client.post("/clientes/1/transacoes", json=payload)
+    assert response.status_code == 422
