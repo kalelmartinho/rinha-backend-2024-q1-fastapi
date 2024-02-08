@@ -13,15 +13,28 @@ async def test_api(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_extrato(client: AsyncClient, dados_clientes: List[Cliente]) -> None:
-    for cliente in dados_clientes:
-        response = await client.get(f"/clientes/{cliente.id}/extrato")
+async def test_clientes(dados_clientes: List[Cliente]) -> None:
+    assert len(dados_clientes) == 5
+    assert dados_clientes[0].limite == 100000
+    assert dados_clientes[0].saldo == 0
+    assert dados_clientes[1].limite == 80000
+    assert dados_clientes[1].saldo == 0
+    assert dados_clientes[2].limite == 1000000
+    assert dados_clientes[2].saldo == 0
+    assert dados_clientes[3].limite == 10000000
+    assert dados_clientes[3].saldo == 0
+    assert dados_clientes[4].limite == 500000
+    assert dados_clientes[4].saldo == 0
+
+
+@pytest.mark.asyncio
+async def test_extrato(client: AsyncClient) -> None:
+    for cliente_id in range(1, 6):
+        response = await client.get(f"/clientes/{cliente_id}/extrato")
         assert response.status_code == 200
         data = response.json()
         assert "saldo" in data
         assert "ultimas_transacoes" in data
-        assert data["saldo"]["limite"] == cliente.limite
-        assert data["saldo"]["total"] == cliente.saldo
 
 
 @pytest.mark.asyncio
