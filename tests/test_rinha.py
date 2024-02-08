@@ -97,3 +97,13 @@ async def test_transacao_tipo_invalido(client: AsyncClient) -> None:
     payload = {"valor": 1000, "tipo": "x", "descricao": "descricao"}
     response = await client.post("/clientes/1/transacoes", json=payload)
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_transacao_valor_negativo(client: AsyncClient) -> None:
+    """Testa se a rota de transação retorna 422 para valor negativo."""
+    payload = {"valor": -1000, "tipo": "c", "descricao": "descricao"}
+    response = await client.post("/clientes/1/transacoes", json=payload)
+    assert response.status_code == 422
+
+    assert response.status_code == 422
