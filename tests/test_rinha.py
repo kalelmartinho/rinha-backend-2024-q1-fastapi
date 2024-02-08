@@ -57,6 +57,14 @@ async def test_transacao(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_transacao_inexistente(client: AsyncClient) -> None:
+    """Testa se a rota de transação retorna 404 para cliente inexistente."""
+    payload = {"valor": 1000, "tipo": "c", "descricao": "descricao"}
+    response = await client.post("/clientes/6/transacoes", json=payload)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_transacao_descricao_longa(client: AsyncClient) -> None:
     """Testa se a rota de transação retorna 422 para descrição maior que 10 caracteres."""
     payload = {"valor": 1000, "tipo": "c", "descricao": "a" * 11}
