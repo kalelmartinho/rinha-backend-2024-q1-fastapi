@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from rinha_backend_2024_q1_fastapi.core.database import dados_simulacao, get_session
+from rinha_backend_2024_q1_fastapi.core.database import get_session
 from rinha_backend_2024_q1_fastapi.main import app
+from rinha_backend_2024_q1_fastapi.models import Cliente
 
 engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
@@ -52,7 +53,13 @@ async def client(test_session) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture(scope="function", autouse=True)
 async def dados_clientes(session: AsyncSession) -> AsyncGenerator[list, None]:
-    clientes = dados_simulacao()
+    clientes = [
+        Cliente(id=1, limite=100000, saldo=0),
+        Cliente(id=2, limite=80000, saldo=0),
+        Cliente(id=3, limite=1000000, saldo=0),
+        Cliente(id=4, limite=10000000, saldo=0),
+        Cliente(id=5, limite=500000, saldo=0),
+    ]
     session.add_all(clientes)
     await session.commit()
     yield clientes

@@ -1,22 +1,11 @@
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ..models import Cliente
 from .config import settings
 
 engine: AsyncEngine = create_async_engine(settings.DB_URL)
-
-
-def dados_simulacao() -> List[Cliente]:
-    return [
-        Cliente(id=1, limite=100000, saldo=0),
-        Cliente(id=2, limite=80000, saldo=0),
-        Cliente(id=3, limite=1000000, saldo=0),
-        Cliente(id=4, limite=10000000, saldo=0),
-        Cliente(id=5, limite=500000, saldo=0),
-    ]
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
