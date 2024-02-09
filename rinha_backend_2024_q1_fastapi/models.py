@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import ConfigDict, PositiveInt
 from pydantic import Field as PydanticField
-from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
+from sqlmodel import Column, DateTime, Field, SQLModel
 
 from .core.utils import utcnow
 
@@ -59,7 +59,7 @@ class RespostaExtrato(SQLModel):
     """Schema de resposta de extrato"""
 
     saldo: SaldoExtrato
-    ultimas_transacoes: List[TransacaoExtrato]
+    ultimas_transacoes: Optional[List[TransacaoExtrato]] = []
 
 
 # Tabelas
@@ -74,11 +74,9 @@ class Transacao(TransacaoBase, table=True):
     )
 
     cliente_id: int = Field(foreign_key="cliente.id")
-    cliente: "Cliente" = Relationship(back_populates="ultimas_transacoes")
 
 
 class Cliente(SaldoBase, table=True):
     """Tabela cliente"""
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    ultimas_transacoes: List[Transacao] = Relationship(back_populates="cliente")
