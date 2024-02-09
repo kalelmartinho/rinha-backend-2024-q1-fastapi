@@ -46,6 +46,22 @@ async def test_extrato_inexistente(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_ultimas_transacoes(client: AsyncClient) -> None:
+    """Testa se a rota de extrato retorna no maximo 10 transacoes em ordem decrescente."""
+    for i in range(qtd := 15):
+        payload = {"valor": 1000, "tipo": "c", "descricao": f"desc{i}"}
+        response = await client.post("/clientes/1/transacoes", json=payload)
+        assert response.status_code == 200
+
+    response = await client.get("/clientes/1/extrato")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["ultimas_transacoes"]) == 10
+    assert data["ultimas_transacoes"][0]["descricao"] == f"desc{qtd-1}"
+    assert data["ultimas_transacoes"][9]["descricao"] == f"desc{qtd-10}"
+
+
+@pytest.mark.asyncio
 async def test_transacao_credito(client: AsyncClient) -> None:
     """Testa se a rota de transação de crédito está funcionando corretamente."""
     payload = {"valor": 1000, "tipo": "c", "descricao": "descricao"}
