@@ -38,6 +38,9 @@ concurrency = ["greenlet", "thread"]
 omit = ["*/main.py", "*/database.py"]
 
 [tool.taskipy.tasks]
+docker-build = "docker build -t rinha-backend-2024q1-fastapi:latest ."
+docker-tag = "docker tag rinha-backend-2024q1-fastapi:latest kalelmartinho/rinha-backend-2024q1-fastapi"
+docker-push = "task docker-build && task docker-tag && docker push kalelmartinho/rinha-backend-2024q1-fastapi"
 lint = "ruff . && ruff check --select I . && ruff format . --check && mypy ."
 format = "ruff . --fix && ruff format . && ruff check --select I . --fix"
 pre_test = "task lint"
