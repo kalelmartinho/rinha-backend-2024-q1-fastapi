@@ -64,5 +64,4 @@ async def transacionar(
 
     session.add(transacao)
     await session.commit()
-    await session.refresh(cliente)
     return cliente
