@@ -1,6 +1,5 @@
 from pydantic.types import PositiveInt
-from sqlalchemy.orm import joinedload
-from sqlmodel import select
+from sqlmodel import desc, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .core.exceptions import ClienteNaoEncontradoException, SaldoInsuficienteException
@@ -13,8 +12,8 @@ from .models import (
 
 
 async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:
-    query = select(Cliente).where(Cliente.id == id)
-    resultado = await session.exec(query)
+    stmt = select(Cliente).where(Cliente.id == id)
+    resultado = await session.exec(stmt)
     cliente = resultado.one_or_none()
     if not cliente or not cliente.id:
         raise ClienteNaoEncontradoException()
@@ -22,20 +21,23 @@ async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:
 
 
 async def gerar_extrato(session: AsyncSession, cliente_id: int) -> RespostaExtrato:
-    query = (
-        select(Cliente)
-        .options(joinedload(Cliente.ultimas_transacoes))  # type: ignore
+    stmt = (
+        select(Cliente, Transacao)
+        .outerjoin(Transacao)
         .where(Cliente.id == cliente_id)
+        .order_by(desc(Transacao.id))
+        .limit(10)
     )
-    resultado = await session.exec(query)
-    cliente = resultado.unique().one_or_none()
 
-    if not cliente:
+    resultado = await session.exec(stmt)
+    data = resultado.all()
+    if not data:
         raise ClienteNaoEncontradoException()
-
+    cliente = data[0][0]
+    transacoes = [transacao[1] for transacao in data if transacao[1] is not None]
     return RespostaExtrato(
         saldo=cliente,
-        ultimas_transacoes=cliente.ultimas_transacoes,  # type: ignore
+        ultimas_transacoes=transacoes,  # type: ignore
     )
 
 
