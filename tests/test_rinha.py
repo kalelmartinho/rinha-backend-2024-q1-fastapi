@@ -92,6 +92,14 @@ async def test_transacao_descricao_longa(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_descricao_vazia(client: AsyncClient) -> None:
+    """Testa se a rota de transação retorna 422 para descrição vazia."""
+    payload = {"valor": 1000, "tipo": "c", "descricao": ""}
+    response = await client.post("/clientes/1/transacoes", json=payload)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_transacao_tipo_invalido(client: AsyncClient) -> None:
     """Testa se a rota de transação retorna 422 para tipo de transação inválido."""
     payload = {"valor": 1000, "tipo": "x", "descricao": "descricao"}

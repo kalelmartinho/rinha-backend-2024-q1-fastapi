@@ -22,7 +22,7 @@ class TipoTransacao(str, Enum):
 class TransacaoBase(SQLModel):
     valor: PositiveInt
     tipo: TipoTransacao
-    descricao: str = Field(..., max_length=10)
+    descricao: str = Field(..., min_length=1, max_length=10)
 
 
 class SaldoBase(SQLModel):
