@@ -12,32 +12,27 @@ from .models import (
 
 
 async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:
-    stmt = select(Cliente).where(Cliente.id == id)
-    resultado = await session.exec(stmt)
-    cliente = resultado.one_or_none()
-    if not cliente or not cliente.id:
+    cliente = await session.get(Cliente, id)
+    if not cliente:
         raise ClienteNaoEncontradoException()
     return cliente
 
 
 async def gerar_extrato(session: AsyncSession, cliente_id: int) -> RespostaExtrato:
+    cliente = await buscar_cliente_por_id(session, cliente_id)
     stmt = (
-        select(Cliente, Transacao)
-        .outerjoin(Transacao)
-        .where(Cliente.id == cliente_id)
+        select(Transacao)
+        .where(Transacao.cliente_id == cliente_id)
         .order_by(desc(Transacao.id))
         .limit(10)
     )
-
-    resultado = await session.exec(stmt)
-    data = resultado.all()
-    if not data:
+    result = await session.exec(stmt)
+    ultimas_transacoes = result.all()
+    if not cliente:
         raise ClienteNaoEncontradoException()
-    cliente = data[0][0]
-    transacoes = [transacao[1] for transacao in data if transacao[1] is not None]
     return RespostaExtrato(
         saldo=cliente,
-        ultimas_transacoes=transacoes,  # type: ignore
+        ultimas_transacoes=ultimas_transacoes,  # type: ignore
     )
 
 

@@ -4,7 +4,9 @@ from typing import List, Optional
 
 from pydantic import ConfigDict, PositiveInt
 from pydantic import Field as PydanticField
-from sqlmodel import Column, DateTime, Field, SQLModel
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import RelationshipProperty
+from sqlmodel import Column, DateTime, Field, Relationship, SQLModel, desc
 
 from .core.utils import utcnow
 
@@ -65,7 +67,7 @@ class RespostaExtrato(SQLModel):
 # Tabelas
 
 
-class Transacao(TransacaoBase, table=True):
+class Transacao(TransacaoBase, AsyncAttrs, table=True):  # type: ignore
     """Tabela de transações"""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -74,9 +76,14 @@ class Transacao(TransacaoBase, table=True):
     )
 
     cliente_id: int = Field(foreign_key="cliente.id")
+    cliente: "Cliente" = Relationship(back_populates="transacoes")
 
 
-class Cliente(SaldoBase, table=True):
+class Cliente(SaldoBase, AsyncAttrs, table=True):  # type: ignore
     """Tabela cliente"""
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    transacoes: List[Transacao] = Relationship(
+        back_populates="cliente",
+        sa_relationship=RelationshipProperty(order_by=desc(Transacao.id)),
+    )
