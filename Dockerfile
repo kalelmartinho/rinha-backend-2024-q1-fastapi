@@ -25,10 +25,13 @@ RUN touch README.md && \
 
 COPY --chown=app:app ./rinha_backend_2024_q1_fastapi /rinha_backend_2024_q1_fastapi
 
-
+ARG UDS_VAR=/fastapi/tmp/sockets/api.sock
+ENV UDS=$UDS_VAR
 ENV DB_HOST=postgres
 
-EXPOSE 8000
-CMD ["poetry", "run", "uvicorn", "rinha_backend_2024_q1_fastapi.main:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN echo "#!/bin/bash" > /entrypoint.sh && \
+    echo "poetry run uvicorn rinha_backend_2024_q1_fastapi.main:app --uds $UDS" >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
- 
+CMD ["/entrypoint.sh"]
+
