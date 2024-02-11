@@ -6,14 +6,14 @@ CREATE TABLE cliente (
     PRIMARY KEY (id)
 );
 
-CREATE TYPE tipotransacao AS ENUM ('CREDITO', 'DEBITO');
+CREATE TYPE tipotransacao AS ENUM ('c', 'd');
 
 CREATE TABLE transacao (
     valor INTEGER NOT NULL, 
     tipo tipotransacao NOT NULL, 
     descricao VARCHAR(10) NOT NULL, 
     id SERIAL NOT NULL, 
-    realizada_em TIMESTAMP WITH TIME ZONE NOT NULL, 
+    realizada_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     cliente_id INTEGER NOT NULL, 
     PRIMARY KEY (id), 
     FOREIGN KEY(cliente_id) REFERENCES cliente (id)
