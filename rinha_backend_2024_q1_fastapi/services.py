@@ -1,64 +1,96 @@
-from pydantic.types import PositiveInt
-from sqlmodel import desc, select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from async_lru import alru_cache
 
 from .core.exceptions import ClienteNaoEncontradoException, SaldoInsuficienteException
-from .models import (
-    Cliente,
-    RespostaExtrato,
-    TipoTransacao,
-    Transacao,
-)
+from .core.utils import utcnow
+from .schemas import RequisicaoTransacao as Transacao
+from .schemas import TipoTransacao
 
 
-async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:
-    cliente = await session.get(Cliente, id)
-    if not cliente or not cliente.id:
-        raise ClienteNaoEncontradoException()
-    return cliente
-
-
-async def gerar_extrato(session: AsyncSession, cliente_id: int) -> RespostaExtrato:
+async def gerar_extrato(conn, cliente_id: int):
     stmt = (
-        select(Cliente, Transacao)
-        .outerjoin(Transacao)
-        .where(Cliente.id == cliente_id)
-        .order_by(desc(Transacao.id))
-        .limit(10)
+        "SELECT c.saldo, c.limite, t.valor, t.tipo, t.descricao, t.realizada_em "
+        "FROM cliente c LEFT JOIN transacao t ON c.id = t.cliente_id "
+        "WHERE c.id = $1 ORDER BY t.id DESC LIMIT 10 "
     )
 
-    resultado = await session.exec(stmt)
-    data = resultado.all()
-    if not data:
+    rows = await conn.fetch(stmt, cliente_id)
+
+    if not rows:
         raise ClienteNaoEncontradoException()
-    cliente = data[0][0]
-    transacoes = [transacao[1] for transacao in data if transacao[1] is not None]
-    return RespostaExtrato(
-        saldo=cliente,
-        ultimas_transacoes=transacoes,  # type: ignore
+
+    extrato = {
+        "saldo": {
+            "total": rows[0]["saldo"],
+            "limite": rows[0]["limite"],
+            "data": utcnow().astimezone().isoformat(),
+        },
+        "ultimas_transacoes": [
+            {
+                "valor": row["valor"],
+                "tipo": row["tipo"],
+                "descricao": row["descricao"],
+                "realizada_em": row["realizada_em"],
+            }
+            for row in rows
+            if row.get("valor")
+        ],
+    }
+
+    return extrato
+
+
+@alru_cache(maxsize=512)
+async def buscar_limite_por_cliente_id(conn, cliente_id: int) -> int:
+    """Busca o limite pelo ID do cliente, cacheado já que o limite não muda."""
+    stmt = "SELECT limite FROM cliente WHERE id = $1"
+    limite = await conn.fetchval(stmt, cliente_id)
+    if not limite:
+        raise ClienteNaoEncontradoException()
+    return limite
+
+
+async def buscar_limite_saldo_por_cliente_id(conn, cliente_id: int) -> int:
+    """Busca o saldo pelo ID do cliente, não cacheado já que o saldo muda."""
+    stmt = "SELECT saldo FROM cliente WHERE id = $1 FOR UPDATE"
+    saldo = await conn.fetchval(stmt, cliente_id)
+    return saldo
+
+
+async def gerar_transacao(
+    conn,
+    cliente_id: int,
+    transacao: Transacao,
+    novo_saldo: int,
+) -> None:
+    transacao_stmt = (
+        "INSERT INTO transacao (cliente_id, valor, tipo, descricao) "
+        "VALUES ($1, $2, $3, $4)"
+    )
+    cliente_stmt = "UPDATE cliente SET saldo = $1 WHERE id = $2"
+    await conn.execute(cliente_stmt, novo_saldo, cliente_id)
+    await conn.execute(
+        transacao_stmt,
+        cliente_id,
+        transacao.valor,
+        transacao.tipo,
+        transacao.descricao,
     )
 
 
 async def transacionar(
-    session: AsyncSession,
+    conn,
     cliente_id: int,
-    valor: PositiveInt,
-    tipo: TipoTransacao,
-    descricao: str,
-) -> Cliente:
-    cliente = await buscar_cliente_por_id(session, cliente_id)
+    transacao: Transacao,
+):
+    limite = await buscar_limite_por_cliente_id(conn, cliente_id)
+    async with conn.transaction():
+        saldo = await buscar_limite_saldo_por_cliente_id(conn, cliente_id)
 
-    if tipo == TipoTransacao.CREDITO:
-        cliente.saldo += valor
-    else:
-        if cliente.saldo - valor < -cliente.limite:
-            raise SaldoInsuficienteException()
-        cliente.saldo -= valor
-
-    transacao = Transacao(
-        cliente_id=cliente_id, valor=valor, tipo=tipo, descricao=descricao
-    )
-
-    session.add(transacao)
-    await session.commit()
-    return cliente
+        if transacao.tipo == TipoTransacao.CREDITO:
+            novo_saldo = saldo + transacao.valor
+        else:
+            novo_saldo = saldo - transacao.valor
+            if novo_saldo < -limite:
+                raise SaldoInsuficienteException()
+        await gerar_transacao(conn, cliente_id, transacao, novo_saldo)
+    return {"saldo": novo_saldo, "limite": limite}
