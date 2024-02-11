@@ -8,14 +8,14 @@ services:
       - sockets:/fastapi/tmp/sockets
     depends_on:
       - api01
-#     - api02
+      - api02
     ports:
       - "9999:9999"
-#   deploy:
-#     resources:
-#      limits:
-#         cpus: "0.15"
-#         memory: "80MB"
+    deploy:
+      resources:
+       limits:
+          cpus: "0.1"
+          memory: "50MB"
           
 
   api01: &api
@@ -24,21 +24,31 @@ services:
     depends_on:
       - db
     environment:
-      DB_URL: postgresql+asyncpg://postgres:postgres@db:5432/postgres
+      DB_HOST: db
+      DB_MIN_SIZE: 5
+      DB_MAX_SIZE: 20
+      TESTING: false
+      KEEPALIVE: 1
+      BIND: unix:/fastapi/tmp/sockets/api01.sock
+
     volumes:
       - sockets:/fastapi/tmp/sockets
-    command: ["poetry", "run", "gunicorn", "rinha_backend_2024_q1_fastapi.main:app", "-k", "uvicorn.workers.UvicornWorker", "-b", "unix:/fastapi/tmp/sockets/api01.sock", "-w", "2", "--log-level", "debug"]
-#   deploy:
-#      resources:
-#        limits:
-#           cpus: "0.8"
-#           memory: "160MB"
+    deploy:
+       resources:
+         limits:
+            cpus: "0.5"
+            memory: "150MB"
 
-# api02:
-#   <<: *api
-#   hostname: api02
-#   command: ["poetry", "run", "uvicorn", "rinha_backend_2024_q1_fastapi.main:app", "--uds", "/fastapi/tmp/sockets/api02.sock"]
-
+  api02:
+    <<: *api
+    hostname: api02
+    environment:
+      DB_HOST: db
+      DB_MIN_SIZE: 5
+      DB_MAX_SIZE: 10
+      TESTING: false
+      BIND: unix:/fastapi/tmp/sockets/api02.sock
+      KEEPALIVE: 1
   db:
     image: postgres:latest
     restart: always
@@ -50,12 +60,12 @@ services:
       - "5432:5432"
     volumes:
       - ./migration.sql:/docker-entrypoint-initdb.d/migration.sql
-#   command: ["-c", "max_connections=1000", "-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
-#   deploy:
-#     resources:
-#        limits:
-#          cpus: "0.6"
-#          memory: "200MB"
+    command: ["-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
+    deploy:
+      resources:
+         limits:
+           cpus: "0.4"
+           memory: "200MB"
 
 
 
