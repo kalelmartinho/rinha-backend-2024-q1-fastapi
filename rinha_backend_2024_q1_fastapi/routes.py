@@ -21,7 +21,11 @@ async def post_transacao(
     Nesse caso, um saldo de -1001 ou menor significa inconsistência na Rinha de Backend!
     """
     response = await transacionar(
-        session, cliente_id, transacao.valor, transacao.tipo, transacao.descricao
+        session,
+        cliente_id,
+        transacao.valor,
+        transacao.tipo,
+        transacao.descricao,
     )
     return response
 
