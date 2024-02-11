@@ -24,14 +24,12 @@ RUN touch README.md && \
     poetry install --only main --no-root && rm -rf $POETRY_CACHE_DIR
 
 COPY --chown=app:app ./rinha_backend_2024_q1_fastapi /rinha_backend_2024_q1_fastapi
+COPY gconf.py .
 
-ARG UDS_VAR=/fastapi/tmp/sockets/api.sock
-ENV UDS=$UDS_VAR
-ENV DB_HOST=postgres
+ENV GUNICORN_CMD_ARGS="-c gconf.py"
 
 RUN echo "#!/bin/bash" > /entrypoint.sh && \
-    echo "poetry run uvicorn rinha_backend_2024_q1_fastapi.main:app --uds $UDS" >> /entrypoint.sh && \
+    echo "poetry run gunicorn rinha_backend_2024_q1_fastapi.main:app" >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-CMD ["/entrypoint.sh"]
-
+ENTRYPOINT ["/entrypoint.sh"]:
