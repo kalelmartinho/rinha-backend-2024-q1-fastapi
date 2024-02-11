@@ -73,7 +73,7 @@ class Transacao(TransacaoBase, table=True):
         default_factory=utcnow, sa_column=Column(DateTime(timezone=True))
     )
 
-    cliente_id: int = Field(foreign_key="cliente.id")
+    cliente_id: int = Field(foreign_key="cliente.id", index=True)
 
 
 class Cliente(SaldoBase, table=True):
