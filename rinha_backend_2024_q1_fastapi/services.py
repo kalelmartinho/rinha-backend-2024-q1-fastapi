@@ -12,9 +12,7 @@ from .models import (
 
 
 async def buscar_cliente_por_id(session: AsyncSession, id: int) -> Cliente:
-    stmt = select(Cliente).where(Cliente.id == id)
-    resultado = await session.exec(stmt)
-    cliente = resultado.one_or_none()
+    cliente = await session.get(Cliente, id)
     if not cliente or not cliente.id:
         raise ClienteNaoEncontradoException()
     return cliente
@@ -49,7 +47,6 @@ async def transacionar(
     descricao: str,
 ) -> Cliente:
     cliente = await buscar_cliente_por_id(session, cliente_id)
-    cliente_id = cliente.id or 0
 
     if tipo == TipoTransacao.CREDITO:
         cliente.saldo += valor
